@@ -90,6 +90,7 @@ def bbox_3d_to_2d(nusc: NuScenes,
 
         # Draw rectangle on image with coords
         img_r = cv2.rectangle(img, (min_x,min_y),(max_x,max_y),(255, 165, 0) , 3)
+        img_r = img_r[:, :, ::-1]
 
         plt.figure(figsize=(12, 4), dpi=100)
         plt.imshow(img_r)
