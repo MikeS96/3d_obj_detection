@@ -1,12 +1,9 @@
-# nuScenes dev-kit.
-# Code written by Sergi Adipraja Widjaja, 2019.
+# Code written by Miguel Saavedra & Gustavo Salazar, 2020.
 
 """
-Export 2D annotations (xmin, ymin, xmax, ymax) from re-projections of our annotated 3D bounding boxes to a .json file.
-Note: Projecting tight 3d boxes to 2d generally leads to non-tight boxes.
-      Furthermore it is non-trivial to determine whether a box falls into the image, rather than behind or around it.
-      Finally some of the objects may be occluded by other objects, in particular when the lidar can see them, but the
-      cameras cannot.
+Set 
+Note: Util functions to sample 2d bounding boxes, 3d targets w.r.t to camera frame and point clouds of a specific instance.
+      Describe longer Gus
 """
 
 import numpy as np
@@ -31,12 +28,14 @@ from nuscenes.scripts.export_2d_annotations_as_json import get_2d_boxes, post_pr
 
 from typing import Tuple, List, Dict, Union
 
-def bbox_3d_to_2d(camera_token: str,
+def bbox_3d_to_2d(nusc: NuScenes,
+                  camera_token: str,
                   annotation_token: str,
                   visualize: bool = False) -> List:
 
     """
     Get the 2D annotation bounding box for a given `sample_data_token`.
+    :param nusc: NuScenes instance.
     :param camera_token: Camera sample_data token.
     :param annotation_token: Sample data token belonging to a camera keyframe.
     :param visualize: bool to plot the resulting bounding box.
@@ -98,15 +97,18 @@ def bbox_3d_to_2d(camera_token: str,
         
     return final_coords
 
-def get_camera_data(annotation_token: str,
+def get_camera_data(nusc: NuScenes,
+                    annotation_token: str,
                     box_vis_level: BoxVisibility = BoxVisibility.ANY):
     
     """
     Given an annotation token (3d detection in world coordinate frame) this method 
     returns the camera in which the annotation is located. If the box is splitted 
     between 2 cameras, it brings the first one found.
+    :param nusc: NuScenes instance.
     :param annotation_token: Annotation token.
-    :return camera data.
+    :param box_vis_level: If sample_data is an image, this sets required visibility for boxes.
+    :return camera channel.
     """
     #Get sample annotation
     ann_record = nusc.get('sample_annotation', annotation_token)
@@ -130,16 +132,18 @@ def get_camera_data(annotation_token: str,
 
     return cam
 
-def target_to_cam(camera_token: str,
+def target_to_cam(nusc: NuScenes,
+                  camera_token: str,
                   annotation_token: str,
                   camera_channel: str = 'CAM_FRONT'):
     """
     Given an annotation token (3d detection in world coordinate frame) and camera sample_data token,
     transform the label from world-coordinate frame to camera.
-    :param camera_channel: Camera channel name, e.g. 'CAM_FRONT'.
+    :param nusc: NuScenes instance.
     :param camera_token: Camera sample_data token.
     :param annotation_token: Camera sample_annotation token.
-    :return box with the labels for the 3d detection task.
+    :param camera_channel: Camera channel name, e.g. 'CAM_FRONT'.
+    :return box with the labels for the 3d detection task in the camera channel frame.
     """
     
     # Camera sample        
@@ -166,7 +170,8 @@ def target_to_cam(camera_token: str,
     
     return box
 
-def map_pointcloud_to_image_(bbox,
+def map_pointcloud_to_image_(nusc: NuScenes,
+                             bbox,
                              pointsensor_token: str,
                              camera_token: str,
                              min_dist: float = 1.0,
@@ -174,11 +179,12 @@ def map_pointcloud_to_image_(bbox,
     """
     Given a point sensor (lidar/radar) token and camera sample_data token, load point-cloud and map it to the image
     plane.
+    :param nusc: NuScenes instance.
     :param bbox: object coordinates in the current image.
     :param pointsensor_token: Lidar/radar sample_data token.
     :param camera_token: Camera sample_data token.
     :param min_dist: Distance from the camera below which points are discarded.
-    :return (pointcloud <np.float: 2, n)>, coloring <np.float: n>, image <Image>).
+    :return (pointcloud <np.float: 2, n)>, coloring <np.float: n>, ori_points<np.float: 3, n)>, image <Image>).
     """
     cam = nusc.get('sample_data', camera_token) # Sample camera info
     pointsensor = nusc.get('sample_data', pointsensor_token) # Sample point cloud
