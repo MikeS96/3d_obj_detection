@@ -68,7 +68,8 @@ def bbox_3d_to_2d(nusc: NuScenes,
                   visualize: bool = False) -> List:
 
     """
-    Get the 2D annotation bounding box for a given `sample_data_token`.
+    Get the 2D annotation bounding box for a given `sample_data_token`. return None if no
+    intersection (bounding box).
     :param nusc: NuScenes instance.
     :param camera_token: Camera sample_data token.
     :param annotation_token: Sample data token belonging to a camera keyframe.
@@ -114,6 +115,9 @@ def bbox_3d_to_2d(nusc: NuScenes,
     
     # Filter points that are outside the image
     final_coords = post_process_coords(corner_coords)
+
+    if final_coords is None:
+        return None
 
     min_x, min_y, max_x, max_y = [int(coord) for coord in final_coords]
     
