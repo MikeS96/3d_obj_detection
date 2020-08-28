@@ -1,0 +1,1 @@
+{"instance": [{"annotation_token": "concha", "pointcloud_path": "path", "position_coord": [1, 2, 3], "lwh_values": [4, 5, 6], "orientation_values": [5, 0, 0], "category": "carro"}, {"annotation_token": "perro21", "pointcloud_path": "path43", "position_coord": [9, 7, 6], "lwh_values": [3, 5, 5], "orientation_values": [2, 0, 0], "category": "bus"}]}

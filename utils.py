@@ -9,6 +9,7 @@ Note: Util functions to sample 2d bounding boxes, 3d targets w.r.t to camera fra
 import numpy as np
 import cv2
 from PIL import Image
+import json
 
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -27,6 +28,39 @@ from nuscenes.utils.data_classes import RadarPointCloud
 from nuscenes.scripts.export_2d_annotations_as_json import get_2d_boxes, post_process_coords
 
 from typing import Tuple, List, Dict, Union
+
+def save_to_bin(dataroot: str ,
+                data_bin):    
+    """
+    Given a dataroot and an array with the info pointclouds in the camera frame, this method 
+    stores the data in a .bin file.
+    :param dataroot: dataroot to store the file.
+    :param data_bin: array with the info.
+    """
+    with open(dataroot, 'wb') as f:
+        f.write(data_bin)
+
+def load_file(dataroot: str):    
+    """
+    Given a dataroot this method load the data from a .txt file in JSON format.
+    :param dataroot: dataroot to load the file.
+    :return datan: dictionary with the info from file.
+    """
+    with open(dataroot) as json_file:
+        data = json.load(json_file)
+    return data
+
+def save_in_file(dataroot: str ,
+                 data_json: dict):    
+    """
+    Given a dataroot and a dictionary with the info, this method stores the data
+    in a .txt file in JSON format.
+    :param dataroot: dataroot to store the file.
+    :param data_json: dictionary with the info.
+    """
+    with open(dataroot, 'w') as outfile:
+        json.dump(data_json, outfile)
+    
 
 def bbox_3d_to_2d(nusc: NuScenes,
                   camera_token: str,
