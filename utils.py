@@ -167,8 +167,6 @@ def get_camera_data(nusc: NuScenes,
             break  # Breaks if find an image that matches
     assert len(boxes) < 2, "Found multiple annotations. Something is wrong!"
     
-    #cam = sample_record['data'][cam]
-
     return cam
 
 def target_to_cam(nusc: NuScenes,
