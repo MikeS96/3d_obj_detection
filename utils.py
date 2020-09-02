@@ -29,22 +29,39 @@ from nuscenes.scripts.export_2d_annotations_as_json import get_2d_boxes, post_pr
 
 from typing import Tuple, List, Dict, Union
 
-def save_to_bin(dataroot: str ,
-                data_bin):    
+def load_pcl_txt(dataroot: str,
+                shape_info):    
+    """
+    Given a dataroot this method load the PointCloud from a .txt file and reshape to its original size.
+    :param dataroot: dataroot to load the file.
+    :return data_pcl: PointCloud from file.
+    """
+    data_pcl = np.loadtxt(dataroot).reshape(shape_info[0], shape_info[1])
+    
+    return data_pcl
+
+
+def save_to_txt(dataroot: str ,
+                data_txt):    
     """
     Given a dataroot and an array with the info pointclouds in the camera frame, this method 
-    stores the data in a .bin file.
+    stores the data in a .txt file.
     :param dataroot: dataroot to store the file.
-    :param data_bin: array with the info.
+    :param data_txt: array with the info.
     """
-    with open(dataroot, 'wb') as f:
-        f.write(data_bin)
+
+    a_file = open(dataroot, "w")
+
+    for row in data_txt:
+        np.savetxt(a_file, row)
+
+    a_file.close()
 
 def load_file(dataroot: str):    
     """
     Given a dataroot this method load the data from a .txt file in JSON format.
     :param dataroot: dataroot to load the file.
-    :return datan: dictionary with the info from file.
+    :return data: dictionary with the info from file.
     """
     with open(dataroot) as json_file:
         data = json.load(json_file)
