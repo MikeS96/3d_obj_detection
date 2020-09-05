@@ -187,26 +187,26 @@ def get_camera_data(nusc: NuScenes,
     return cam
 
 def target_to_cam(nusc: NuScenes,
-                  camera_token: str,
+                  pointsensor_token: str,
                   annotation_token: str,
-                  camera_channel: str = 'CAM_FRONT'):
+                  pointsensor_channel: str = 'LIDAR_TOP'):
     """
-    Given an annotation token (3d detection in world coordinate frame) and camera sample_data token,
-    transform the label from world-coordinate frame to camera.
+    Given an annotation token (3d detection in world coordinate frame) and pointsensor sample_data token,
+    transform the label from world-coordinate frame to LiDAR.
     :param nusc: NuScenes instance.
-    :param camera_token: Camera sample_data token.
+    :param camera_token: Lidar/radar sample_data token.
     :param annotation_token: Camera sample_annotation token.
-    :param camera_channel: Camera channel name, e.g. 'CAM_FRONT'.
-    :return box with the labels for the 3d detection task in the camera channel frame.
+    :param camera_channel: Laser channel name, e.g. 'LIDAR_TOP'.
+    :return box with the labels for the 3d detection task in the LiDAR channel frame.
     """
     
-    # Camera sample        
-    cam_data = nusc.get('sample_data', camera_token) # Sample camera info
+    # Point LiDAR sample        
+    point_data = nusc.get('sample_data', pointsensor_token) # Sample LiDAR info
         
-    # From camera to ego
-    cs_rec = nusc.get('calibrated_sensor', cam_data['calibrated_sensor_token'])
+    # From LiDAR to ego
+    cs_rec = nusc.get('calibrated_sensor', point_data['calibrated_sensor_token'])
     # Transformation metadata from ego to world coordinate frame
-    pose_rec = nusc.get('ego_pose', cam_data['ego_pose_token'])
+    pose_rec = nusc.get('ego_pose', point_data['ego_pose_token'])
     
     # Obtain the annotation from the token
     annotation_metadata =  nusc.get('sample_annotation', annotation_token)
@@ -257,6 +257,9 @@ def map_pointcloud_to_image_(nusc: NuScenes,
     # Open image of the interest camera
     im = Image.open(osp.join(nusc.dataroot, cam['filename']))
 
+    # Save original points (X, Y and Z) coordinates in LiDAR frame
+    ori_points = pc.points[:3, :].copy()
+
     # Points live in the point sensor frame. So they need to be transformed via global to the image plane.
     # First step: transform the point-cloud to the ego vehicle frame for the timestamp of the sweep.
     cs_record = nusc.get('calibrated_sensor', pointsensor['calibrated_sensor_token']) # Transformation matrix of pointCloud
@@ -289,9 +292,6 @@ def map_pointcloud_to_image_(nusc: NuScenes,
     # Fifth step: actually take a "picture" of the point cloud.
     # Grab the depths (camera frame z axis points away from the camera).
     depths = pc.points[2, :]
-    
-    # Save original points (X, Y and Z) coordinates
-    ori_points = pc.points[:3, :]
     
     # Retrieve the color from the depth.
     coloring = depths
