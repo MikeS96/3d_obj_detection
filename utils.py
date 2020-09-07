@@ -238,7 +238,7 @@ def map_pointcloud_to_image_(nusc: NuScenes,
     :param pointsensor_token: Lidar/radar sample_data token.
     :param camera_token: Camera sample_data token.
     :param min_dist: Distance from the camera below which points are discarded.
-    :return (pointcloud <np.float: 2, n)>, coloring <np.float: n>, ori_points<np.float: 3, n)>, image <Image>).
+    :return (points_ann <np.float: 2, n)>, coloring_ann <np.float: n>, ori_points_ann<np.float: 3, n)>, image <Image>).
     """
     cam = nusc.get('sample_data', camera_token) # Sample camera info
     pointsensor = nusc.get('sample_data', pointsensor_token) # Sample point cloud
@@ -304,30 +304,92 @@ def map_pointcloud_to_image_(nusc: NuScenes,
     # bounding box coordinates
     min_x, min_y, max_x, max_y = [int(points_b) for points_b in bbox]
 
-    # Remove points that are either outside or behind the camera. Leave a margin of 1 pixel for aesthetic reasons.
-    # Also make sure points are at least 1m in front of the camera to avoid seeing the lidar points on the camera
-    # casing for non-keyframes which are slightly out of sync.
+    # Floor segmentation
+    points_img, coloring_img, ori_points_img = segment_floor(points, coloring, ori_points,
+                                                            (im.size[0], im.size[1]), 0.3, 1.0)
+
+    # Filter the points within the annotaiton
     # Create a mask of bools the same size of depth points
-    mask = np.ones(depths.shape[0], dtype=bool)
-    # Keep points that are at least 1m in front of the camera 
-    mask = np.logical_and(mask, depths > min_dist)
+    mask_ann = np.ones(coloring_img.shape[0], dtype=bool)
     # Keep points such as X coordinate is bigger than bounding box minimum coordinate
-    mask = np.logical_and(mask, points[0, :] > min_x + 1)
+    mask_ann = np.logical_and(mask_ann, points_img[0, :] > min_x + 1)
     # remove points such as X coordinate is bigger than bounding box maximum coordinate
-    mask = np.logical_and(mask, points[0, :] < max_x - 1)
+    mask_ann = np.logical_and(mask_ann, points_img[0, :] < max_x - 1)
     # Keep points such as Y coordinate is bigger than bounding box minimum coordinate
-    mask = np.logical_and(mask, points[1, :] > min_y + 1)
+    mask_ann = np.logical_and(mask_ann, points_img[1, :] > min_y + 1)
     # remove points such as Y coordinate is bigger than bounding box maximum coordinate
-    mask = np.logical_and(mask, points[1, :] < max_y - 1)
+    mask_ann = np.logical_and(mask_ann, points_img[1, :] < max_y - 1)
     # Keep only the interest points
-    points = points[:, mask]
-    coloring = coloring[mask]
-    ori_points = ori_points[:, mask]
+    points_ann = points_img[:, mask_ann]
+    coloring_ann = coloring_img[mask_ann]
+    ori_points_ann = ori_points_img[:, mask_ann]
     
     if visualize:
         plt.figure(figsize=(9, 16))
         plt.imshow(im)
-        plt.scatter(points[0, :], points[1, :], c = coloring, s = 5)
+        plt.scatter(points_ann[0, :], points_ann[1, :], c = coloring_ann, s = 5)
         plt.axis('off')
         
-    return points, coloring, ori_points, im
+    return points_ann, coloring_ann, ori_points_ann, im
+
+def segment_floor(points: np.array,
+                  coloring: np.array,
+                  ori_points: np.array,
+                  imsize: Tuple[float, float] = (1600, 900),
+                  dist_thresh: float = 0.3,
+                  min_dist: float = 1.0) -> Tuple:
+    """
+    Given a point sensor (lidar/radar) token and camera sample_data token, load point-cloud and map it to the image
+    plane.
+    :param points: <np.float: 2, n> point cloud mapped in the image frame
+    :param coloring: <np.float: n> depth of the point cloud in the camera frame
+    :param ori_points: <np.float: 3, n> point cloud in LiDAR coordinate frame
+    :param imsize: Size of image to render. The larger the slower this will run.
+    :param dist_thresh: Threshold to consider points within floor plane.
+    :param min_dist: Distance from the camera below which points are discarded.
+    :return (points_img <np.float: 2, n)>, coloring_img <np.float: n>, ori_points_img<np.float: 3, n)>).
+    """
+
+    # Remove points that are either outside or behind the camera. Leave a margin of 1 pixel for aesthetic reasons.
+    mask_img = np.ones(coloring.shape[0], dtype=bool)
+    mask_img = np.logical_and(mask_img, coloring > min_dist)
+    mask_img = np.logical_and(mask_img, points[0, :] > 1)
+    mask_img = np.logical_and(mask_img, points[0, :] < imsize[0] - 1)
+    mask_img = np.logical_and(mask_img, points[1, :] > 1)
+    mask_img = np.logical_and(mask_img, points[1, :] < imsize[1] - 1)
+
+    # Filter the points within the image with the generated mask
+    points_img = points[:, mask_img]
+    coloring_img = coloring[mask_img]
+    ori_points_img = ori_points[:, mask_img]
+    
+    # Segmenting the point cloud's floor
+    lidar_points = np.asarray(ori_points_img.T, np.float32)
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(lidar_points)
+
+    # inliers are the indeces of the the inliers (plane points)
+    plane_model, inliers = pcd.segment_plane(distance_threshold = dist_thresh,
+                                            ransac_n = 20,
+                                            num_iterations = 1000)
+    # Obtaining the plane's equation
+    [a, b, c, d] = plane_model
+    # print(f"Plane equation: {a:.2f}x + {b:.2f}y + {c:.2f}z + {d:.2f} = 0")
+
+    # These lines plot the point cloud inliers and outliers
+    # inlier_cloud = pcd.select_by_index(inliers)
+    # inlier_cloud.paint_uniform_color([1.0, 0, 0])
+    # outlier_cloud = pcd.select_by_index(inliers, invert=True)
+    # o3d.visualization.draw_geometries([outlier_cloud])
+
+    # Create a floor mask with the indeces inverted, points that are not in plane are of interest
+    mask_floor = np.arange(points_img.shape[1])
+    mask_floor = np.full(points_img.shape[1], True, dtype=bool)
+    mask_floor[inliers] = False
+
+    # Filter the points which are floor
+    points_img = points_img[:, mask_floor]
+    coloring_img = coloring_img[mask_floor]
+    ori_points_img = ori_points_img[:, mask_floor]
+        
+    return points_img, coloring_img, ori_points_img
