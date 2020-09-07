@@ -230,6 +230,7 @@ def map_pointcloud_to_image_(nusc: NuScenes,
                              pointsensor_token: str,
                              camera_token: str,
                              min_dist: float = 1.0,
+                             dist_thresh: float = 0.1,
                              visualize: bool = False) -> Tuple:
     """
     Given a point sensor (lidar/radar) token and camera sample_data token, load point-cloud and map it to the image
@@ -239,6 +240,7 @@ def map_pointcloud_to_image_(nusc: NuScenes,
     :param pointsensor_token: Lidar/radar sample_data token.
     :param camera_token: Camera sample_data token.
     :param min_dist: Distance from the camera below which points are discarded.
+    :param dist_thresh: Threshold to consider points within floor plane.
     :return (points_ann <np.float: 2, n)>, coloring_ann <np.float: n>, ori_points_ann<np.float: 3, n)>, image <Image>).
     """
     cam = nusc.get('sample_data', camera_token) # Sample camera info
@@ -307,7 +309,7 @@ def map_pointcloud_to_image_(nusc: NuScenes,
 
     # Floor segmentation
     points_img, coloring_img, ori_points_img = segment_floor(points, coloring, ori_points,
-                                                            (im.size[0], im.size[1]), 0.3, 1.0)
+                                                            (im.size[0], im.size[1]), dist_thresh, 1.0)
 
     # Filter the points within the annotaiton
     # Create a mask of bools the same size of depth points
