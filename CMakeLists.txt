@@ -4,6 +4,7 @@ find_package (PCL 1.8.1 REQUIRED)
 
 #set(PCL_INCLUDE_DIRS /usr/local/include/pcl-1.8)
 
+link_libraries(stdc++fs)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
