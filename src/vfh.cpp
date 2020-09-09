@@ -2,7 +2,12 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/features/normal_3d.h>
+// Descriptors
 #include <pcl/features/vfh.h>
+#include <pcl/features/cvfh.h>
+#include <pcl/features/our_cvfh.h>
+#include <pcl/features/esf.h>
+
 #include <pcl/kdtree/impl/kdtree_flann.hpp>
 #include <pcl/search/impl/search.hpp>
 #include <pcl/visualization/pcl_visualizer.h>
@@ -18,6 +23,10 @@ namespace fs = std::experimental::filesystem;
 
 int main (int argc, char** argv)
 {
+  // mkdir buikd
+  // cdb uild
+  // cmake ..
+  // make
 
   //std::vector<float> hist;
   pcl::VFHSignature308 hist; 
