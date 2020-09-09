@@ -7,7 +7,14 @@
 #include <pcl/search/impl/search.hpp>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/visualization/histogram_visualizer.h>
+// #include <pcl/visualization/cloud_viewer.h>
 #include <fstream>
+#include <experimental/filesystem>
+#include <vector> 
+#include <boost/algorithm/string.hpp>
+
+namespace fs = std::experimental::filesystem;
+
 
 int main (int argc, char** argv)
 {
@@ -19,55 +26,83 @@ int main (int argc, char** argv)
 	// Object for storing the normals.
 	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
   // Object for storing the VFH descriptor.
-	pcl::PointCloud<pcl::VFHSignature308>::Ptr descriptor(new pcl::PointCloud<pcl::VFHSignature308>);
-
-  // Read a PCD file from disk.
-	if (pcl::io::loadPCDFile<pcl::PointXYZ>("../segmentation/car.pcd", *object) != 0)
-	{
-		return -1;
-	}
+  pcl::PointCloud<pcl::VFHSignature308>::Ptr descriptor(new pcl::PointCloud<pcl::VFHSignature308>);
 
   float radius_search = 0.03;
 
-  // Estimate the normals.
+  // Object for storing the normals
 	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
-	normalEstimation.setInputCloud(object);
-	normalEstimation.setRadiusSearch(radius_search);
+	// KDtree object to search the normals
 	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
-	normalEstimation.setSearchMethod(kdtree);
-	normalEstimation.compute(*normals);
-
   // VFH estimation object.
 	pcl::VFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::VFHSignature308> vfh;
-	vfh.setInputCloud(object);
-	vfh.setInputNormals(normals);
-	vfh.setSearchMethod(kdtree);
-	// Optionally, we can normalize the bins of the resulting histogram,
-	// using the total number of points.
-	vfh.setNormalizeBins(true);
-	// Also, we can normalize the SDC with the maximum size found between
-	// the centroid and any of the cluster's points.
-	vfh.setNormalizeDistance(false);
 
-	vfh.compute(*descriptor);
+  // Iterate over all the instance in the folder
+  std::string path = "../segmentation/";
+  std::string token;
+  std::vector<std::string> splitter;
+  int cont = 0;
+  for (const auto & entry : fs::directory_iterator(path))
+  {
+    //std::cout << entry.path() << std::endl;
+    // Save token as a string
+    token = entry.path();
 
-  hist = descriptor->points[0];
+    // Read a PCD file from disk.
+    if (pcl::io::loadPCDFile<pcl::PointXYZ>(token, *object) != 0)
+    {
+      return -1;
+    }
 
-  std::cout << "The descriptor was successfully computed"  << std::endl;
+    // Uncomment to visualize pointcloud with PCL
+    //pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
+    //viewer.showCloud (object);
+    //while (!viewer.wasStopped ())
+    //{
+    //}
 
-  // Plotter object.
-	pcl::visualization::PCLHistogramVisualizer viewer;
-  // We need to set the size of the descriptor beforehand.
-	viewer.addFeatureHistogram(*descriptor, 308);
+    // Estimate the point cloud normals
+    normalEstimation.setInputCloud(object);
+	  normalEstimation.setRadiusSearch(radius_search);
+    normalEstimation.setSearchMethod(kdtree);
+	  normalEstimation.compute(*normals);
 
-  // Uncomment this line to see the histogram   
+    // Set parameters for VFH estimator
+    vfh.setInputCloud(object);
+    vfh.setInputNormals(normals);
+    vfh.setSearchMethod(kdtree);
+    // Optionally, we can normalize the bins of the resulting histogram,
+    // using the total number of points.
+    vfh.setNormalizeBins(true);
+    // Also, we can normalize the SDC with the maximum size found between
+    // the centroid and any of the cluster's points.
+    vfh.setNormalizeDistance(false);
+    // Compute descriptor
+    vfh.compute(*descriptor);
 
-  //viewer.spin();
+    hist = descriptor->points[0];
 
-  std::ofstream outfile;
+    std::cout << hist << std::endl;
 
-  outfile.open("../segmentation/car_vfh.txt", std::ios_base::app);
-  outfile << hist; 
+    // Plotter object. Uncomment this line to see the histogram  
+	  //pcl::visualization::PCLHistogramVisualizer viewer_h;
+    // We need to set the size of the descriptor beforehand.
+	  //viewer_h.addFeatureHistogram(*descriptor, 308);
+    //viewer_h.spin();
+
+    // Split the input screen and obtain the instance's name
+    boost::split(splitter, token, [](char c){return c == '/' || c == '.';});
+
+    // Writting the vector
+    // Object to save descriptor vectors
+    std::ofstream outfile;
+    outfile.open("../vfh_features/" + splitter[4] + ".txt", std::ios_base::app);
+    outfile << hist; 
+    outfile.close();
+    cont ++;
+  }
+
+  std::cout << "The total number of instances proccessed were: " << cont << std::endl;
 
   // This method also saves the vector as pcd, however, open3d is not able to openit
   // pcl::io::savePCDFileASCII ("../segmentation/car_vfh.pcd", *descriptor);
