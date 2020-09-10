@@ -7,6 +7,7 @@
 #include <pcl/features/cvfh.h>
 #include <pcl/features/our_cvfh.h>
 #include <pcl/features/esf.h>
+#include <pcl/features/grsd.h>
 
 #include <pcl/kdtree/impl/kdtree_flann.hpp>
 #include <pcl/search/impl/search.hpp>
@@ -105,7 +106,7 @@ int main (int argc, char** argv)
     // Writting the vector
     // Object to save descriptor vectors
     std::ofstream outfile;
-    outfile.open("../vfh_features/" + splitter[4] + ".txt", std::ios_base::app);
+    outfile.open("../vfh_features/" + splitter[4] + "vfh_.txt", std::ios_base::app);
     outfile << hist; 
     outfile.close();
     cont ++;
