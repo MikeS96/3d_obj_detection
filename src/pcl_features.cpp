@@ -48,7 +48,7 @@ int main (int argc, char** argv)
 	pcl::VFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::VFHSignature308> vfh;
 
   // Iterate over all the instance in the folder
-  std::string path = "../segmentation/";
+  std::string path = "../dataset/pcd_segmentation/";
   std::string token;
   std::vector<std::string> splitter;
   int cont = 0;
@@ -106,7 +106,7 @@ int main (int argc, char** argv)
     // Writting the vector
     // Object to save descriptor vectors
     std::ofstream outfile;
-    outfile.open("../vfh_features/" + splitter[4] + "vfh_.txt", std::ios_base::app);
+    outfile.open("../dataset/point_features/" + splitter[5] + "vfh_.txt", std::ios_base::app);
     outfile << hist; 
     outfile.close();
     cont ++;
