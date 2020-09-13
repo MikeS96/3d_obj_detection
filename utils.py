@@ -396,3 +396,20 @@ def segment_floor(points: np.array,
     ori_points_img = ori_points_img[:, mask_floor]
         
     return points_img, coloring_img, ori_points_img
+
+def parse_features_to_numpy(path: str):
+    """
+    Given a features' vector path, read the txt file and parse the info as a numpy array
+    :param path: Path to the features' vector file.
+    :return (descriptor_array <np.float: 1, 640)>.
+    """
+
+    # Reading the file
+    file = open(path,"r")
+    file = file.read()
+    # Replace undesired elements
+    file = file.replace('(', '').replace(')', '').replace(' ', '')
+    # Split the string and create a numpy array with floats
+    descriptor_array = np.array(file.split(',')).astype(float)
+    
+    return descriptor_array
