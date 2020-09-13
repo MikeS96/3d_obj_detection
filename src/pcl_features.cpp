@@ -21,6 +21,12 @@
 
 namespace fs = std::experimental::filesystem;
 
+/* Useful links
+
+http://robotica.unileon.es/index.php/PCL/OpenNI_tutorial_4:_3D_object_recognition_(descriptors)
+http://www.willowgarage.com/sites/default/files/Rusu10IROS.pdf
+
+*/
 
 int main (int argc, char** argv)
 {
@@ -30,22 +36,27 @@ int main (int argc, char** argv)
   // make
 
   //std::vector<float> hist;
-  pcl::VFHSignature308 hist; 
+  // pcl::VFHSignature308 hist; 
+  pcl::ESFSignature640 hist; 
   // Cloud for storing the object.
 	pcl::PointCloud<pcl::PointXYZ>::Ptr object(new pcl::PointCloud<pcl::PointXYZ>);
 	// Object for storing the normals.
-	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+	//pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
   // Object for storing the VFH descriptor.
-  pcl::PointCloud<pcl::VFHSignature308>::Ptr descriptor(new pcl::PointCloud<pcl::VFHSignature308>);
+  //pcl::PointCloud<pcl::VFHSignature308>::Ptr descriptor(new pcl::PointCloud<pcl::VFHSignature308>);
+  // Object for storing the ESF descriptor.
+	pcl::PointCloud<pcl::ESFSignature640>::Ptr descriptor(new pcl::PointCloud<pcl::ESFSignature640>);
 
   float radius_search = 0.03;
 
   // Object for storing the normals
-	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
+	//pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
 	// KDtree object to search the normals
-	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
+	//pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
   // VFH estimation object.
-	pcl::VFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::VFHSignature308> vfh;
+	//pcl::VFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::VFHSignature308> vfh;
+  // ESF estimation object.
+	pcl::ESFEstimation<pcl::PointXYZ, pcl::ESFSignature640> esf;
 
   // Iterate over all the instance in the folder
   std::string path = "../dataset/pcd_segmentation/";
@@ -72,27 +83,32 @@ int main (int argc, char** argv)
     //}
 
     // Estimate the point cloud normals
-    normalEstimation.setInputCloud(object);
-	  normalEstimation.setRadiusSearch(radius_search);
-    normalEstimation.setSearchMethod(kdtree);
-	  normalEstimation.compute(*normals);
+    //normalEstimation.setInputCloud(object);
+	  //normalEstimation.setRadiusSearch(radius_search);
+    //normalEstimation.setSearchMethod(kdtree);
+	  //normalEstimation.compute(*normals);
 
     // Set parameters for VFH estimator
-    vfh.setInputCloud(object);
-    vfh.setInputNormals(normals);
-    vfh.setSearchMethod(kdtree);
+    //vfh.setInputCloud(object);
+    //vfh.setInputNormals(normals);
+    //vfh.setSearchMethod(kdtree);
     // Optionally, we can normalize the bins of the resulting histogram,
     // using the total number of points.
-    vfh.setNormalizeBins(true);
+    //vfh.setNormalizeBins(true);
     // Also, we can normalize the SDC with the maximum size found between
     // the centroid and any of the cluster's points.
-    vfh.setNormalizeDistance(false);
+    //vfh.setNormalizeDistance(false);
     // Compute descriptor
-    vfh.compute(*descriptor);
+    //vfh.compute(*descriptor);
+
+    // ESF estimation object.
+    esf.setInputCloud(object);
+
+    esf.compute(*descriptor);
 
     hist = descriptor->points[0];
 
-    std::cout << hist << std::endl;
+    //std::cout << hist << std::endl;
 
     // Plotter object. Uncomment this line to see the histogram  
 	  //pcl::visualization::PCLHistogramVisualizer viewer_h;
@@ -106,7 +122,7 @@ int main (int argc, char** argv)
     // Writting the vector
     // Object to save descriptor vectors
     std::ofstream outfile;
-    outfile.open("../dataset/point_features/" + splitter[5] + "vfh_.txt", std::ios_base::app);
+    outfile.open("../dataset/point_features/" + splitter[5] + ".txt", std::ios_base::app);
     outfile << hist; 
     outfile.close();
     cont ++;
