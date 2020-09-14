@@ -50,8 +50,6 @@ def plot_3d_image_(nusc: NuScenes,
     # Sample point cloud
     pointsensor_token = sample_record['data'][pointsensor_channel]
     pointsensor = nusc.get('sample_data', pointsensor_token)
-    # annotation metadata
-    ann_metadata = nusc.get('sample_annotation', annotation_token)
 
     # Obtain transformation matrices
     # From camera to ego
@@ -90,7 +88,7 @@ def plot_3d_image_(nusc: NuScenes,
 
     # Map corners to 2D image plane
     cs_record_calib = nusc.get('calibrated_sensor', cam['calibrated_sensor_token'])
-    corners = view_points(bbox_3d[0].corners(), view = np.array(cs_record_calib['camera_intrinsic']), normalize = True)[:2, :]
+    corners = view_points(bbox_3d.corners(), view = np.array(cs_record_calib['camera_intrinsic']), normalize = True)[:2, :]
 
     # Create axis and image
     fig, axes = plt.subplots(1, 1, figsize=(18, 9))
