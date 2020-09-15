@@ -30,6 +30,17 @@ from nuscenes.scripts.export_2d_annotations_as_json import get_2d_boxes, post_pr
 
 from typing import Tuple, List, Dict, Union
 
+def middle_func(axis_array):
+    """
+    Given an array for an axis calc the middle point.
+    :param axis_array: array to calc middle.
+    :return middle_result: operation result.
+    """
+
+    middle_result = ((np.max(axis_array)-np.min(axis_array))//2)+np.min(axis_array)
+
+    return middle_result
+
 def load_pcl_txt(dataroot: str,
                 shape_info):    
     """
