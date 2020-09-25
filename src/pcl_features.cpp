@@ -1,3 +1,16 @@
+/**
+ *  @file pcl_features.cpp
+ *  @authors Miguel Saavedra - Gustavo Salazar
+ *  @brief Global feature extractor
+ *  @version 0.1
+ *  @date 25-09-2020
+ *
+ *  useful links: http://robotica.unileon.es/index.php/PCL/OpenNI_tutorial_4:_3D_object_recognition_(descriptors)
+ * 
+ *  http://www.willowgarage.com/sites/default/files/Rusu10IROS.pdf
+ * 
+ */
+
 #include <iostream>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -21,19 +34,8 @@
 
 namespace fs = std::experimental::filesystem;
 
-/* Useful links
-
-http://robotica.unileon.es/index.php/PCL/OpenNI_tutorial_4:_3D_object_recognition_(descriptors)
-http://www.willowgarage.com/sites/default/files/Rusu10IROS.pdf
-
-*/
-
 int main (int argc, char** argv)
 {
-  // mkdir buikd
-  // cdb uild
-  // cmake ..
-  // make
 
   //std::vector<float> hist;
   // pcl::VFHSignature308 hist; 
