@@ -32,30 +32,30 @@ pip install -r requirements.txt
 ```
 Aditionally, you will also need to organize the workspace as shown below and create the folder *build* which is were the C++ file is compiles. We use the Mini NuScenes dataset and this can be found [here](https://www.nuscenes.org/download).
 
-├── `3D Bounding box regressor.ipynb`
-├── `Dataset creator.ipynb`
-├── `Instance segmentation.ipynb`
-├── assets
-├── CMakeLists.txt
-├── build
-├── dataset
-│   ├── 3d_obj_detection.csv
-│   ├── ann_points_cam 
-│   ├── ann_points_lidar 
-│   ├── pcd_segmentation 
-│   ├── point_features 
-│   └── samples 
-│ 
-├── requirements.txt
-├── src
-│   └── `pcl_features.cpp`
-├── tutorials
-│   └── `3d_to_2d_test_methods.ipynb`
-└── utils
-│   ├── `__init__.py`
-│   ├── `misc.py`
-│   └── `vis.py`
-└──  README.md
+    ├── 3D Bounding box regressor.ipynb
+    ├── Dataset creator.ipynb
+    ├── Instance segmentation.ipynb
+    ├── assets
+    ├── CMakeLists.txt
+    ├── build
+    ├── dataset
+    │   ├── 3d_obj_detection.csv
+    │   ├── ann_points_cam 
+    │   ├── ann_points_lidar 
+    │   ├── pcd_segmentation 
+    │   ├── point_features 
+    │   └── samples 
+    │ 
+    ├── requirements.txt
+    ├── src
+    │   └── pcl_features.cpp
+    ├── tutorials
+    │   └── 3d_to_2d_test_methods.ipynb
+    └── utils
+    │   ├── __init__.py
+    │   ├── misc.py
+    │   └── vis.py
+    └──  README.md
 
 ## Usage
 
@@ -99,5 +99,5 @@ This will create the global descriptor for each segmented vehicle.
 Finally, `3D Bounding box regressor.ipynb`condense all this information in a CSV file with all the features and targets. There a supervised learning strategy is used to estimate the 3D bounding box parameters. Some of the results obtained are shown below.
 
 <div  align="center">
-<img src="./assets/car_1.pmg" width="240" /> <img src="./assets/car_2.jpeg" width="240" />  
+<img src="./assets/car_1.jpeg" width="320" /> <img src="./assets/car_2.jpeg" width="320" />  
 </div>
