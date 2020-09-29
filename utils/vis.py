@@ -27,22 +27,25 @@ from nuscenes.scripts.export_2d_annotations_as_json import get_2d_boxes, post_pr
 
 from typing import Tuple, List, Dict, Union
 
+
 def plot_3d_image_(nusc: NuScenes,
                    camera_token: str,
                    label: str,
                    sample_token: str,
-                   bbox_3d,
-                   pointsensor_channel: str = 'LIDAR_TOP'):    
+                   bbox_3d: box,
+                   gt_bbox_3d,
+                   pointsensor_channel: str = 'LIDAR_TOP'):
     """
     Given a 3D box, this method plots the Bounding box in the image frame
     :param nusc: NuScenes instance.
     :param camera_token: Camera sample_data token.
     :param label: Class' label.
     :param sample_token: Sample data token belonging to a camera keyframe.
-    :param bbox_3d: box object with the 3D bbox info.
+    :param bbox_3d: box object with the predicted 3D bbox info.
+    :param gt_bbox_3d: box object with the ground truth 3D bbox info.
     :param pointsensor_channel: Channel of the point cloud sensor.
     """
-    
+
     # Sample record
     sample_record = nusc.get('sample', sample_token)
     # Sample cam sensor
@@ -58,7 +61,8 @@ def plot_3d_image_(nusc: NuScenes,
     pose_rec_cam = nusc.get('ego_pose', cam['ego_pose_token'])
 
     # From LiDAR to ego
-    cs_rec_point = nusc.get('calibrated_sensor', pointsensor['calibrated_sensor_token'])
+    cs_rec_point = nusc.get('calibrated_sensor',
+                            pointsensor['calibrated_sensor_token'])
     # Transformation metadata from ego to world coordinate frame
     pose_rec_point = nusc.get('ego_pose', pointsensor['ego_pose_token'])
 
@@ -80,15 +84,19 @@ def plot_3d_image_(nusc: NuScenes,
     bbox_3d.rotate(Quaternion(cs_rec_cam['rotation']).inverse)
 
     # Draw vertical lines of 3D bounding box with this method
+
     def draw_rect(selected_corners, color, axes):
-            prev = selected_corners[-1]
-            for corner in selected_corners:
-                axes.plot([prev[0], corner[0]], [prev[1], corner[1]], color = color, linewidth=2)
-                prev = corner
+        prev = selected_corners[-1]
+        for corner in selected_corners:
+            axes.plot([prev[0], corner[0]], [prev[1], corner[1]],
+                      color=color, linewidth=2)
+            prev = corner
 
     # Map corners to 2D image plane
-    cs_record_calib = nusc.get('calibrated_sensor', cam['calibrated_sensor_token'])
-    corners = view_points(bbox_3d.corners(), view = np.array(cs_record_calib['camera_intrinsic']), normalize = True)[:2, :]
+    cs_record_calib = nusc.get(
+        'calibrated_sensor', cam['calibrated_sensor_token'])
+    corners = view_points(bbox_3d.corners(), view=np.array(
+        cs_record_calib['camera_intrinsic']), normalize=True)[:2, :]
 
     # Create axis and image
     fig, axes = plt.subplots(1, 1, figsize=(18, 9))
@@ -97,13 +105,13 @@ def plot_3d_image_(nusc: NuScenes,
     axes.imshow(im)
 
     # Draw the sides of the bounding box
-    colors = ('b', 'r', 'k')
+    colors = ('b', 'k', 'k')
 
     for i in range(4):
         axes.plot([corners.T[i][0], corners.T[i + 4][0]],
-                [corners.T[i][1], corners.T[i + 4][1]],
-                color=colors[2], linewidth = 2)
-        
+                  [corners.T[i][1], corners.T[i + 4][1]],
+                  color=colors[2], linewidth=2)
+
     # Draw front (first 4 corners) and rear (last 4 corners) rectangles(3d)/lines(2d)
     draw_rect(corners.T[:4], colors[0], axes)
     draw_rect(corners.T[4:], colors[1], axes)
@@ -112,9 +120,49 @@ def plot_3d_image_(nusc: NuScenes,
     center_bottom_forward = np.mean(corners.T[2:4], axis=0)
     center_bottom = np.mean(corners.T[[2, 3, 7, 6]], axis=0)
     axes.plot([center_bottom[0], center_bottom_forward[0]],
-            [center_bottom[1], center_bottom_forward[1]],
-            color=colors[0], linewidth=2)
-        
+              [center_bottom[1], center_bottom_forward[1]],
+              color=colors[0], linewidth=2)
+
+    # If none nothing else is plotted, otherwise the ground truth is plotted.
+    if gt_bbox_3d is not None:
+        # Transform box to camera frame
+        # From LiDAR point sensor to ego vehicle
+        gt_bbox_3d.rotate(Quaternion(cs_rec_point['rotation']))
+        gt_bbox_3d.translate(np.array(cs_rec_point['translation']))
+
+        #  Move box to world coordinate frame
+        gt_bbox_3d.rotate(Quaternion(pose_rec_point['rotation']))
+        gt_bbox_3d.translate(np.array(pose_rec_point['translation']))
+
+        # Move box to ego vehicle coord system.
+        gt_bbox_3d.translate(-np.array(pose_rec_cam['translation']))
+        gt_bbox_3d.rotate(Quaternion(pose_rec_cam['rotation']).inverse)
+
+        #  Move box to sensor coord system (cam).
+        gt_bbox_3d.translate(-np.array(cs_rec_cam['translation']))
+        gt_bbox_3d.rotate(Quaternion(cs_rec_cam['rotation']).inverse)
+
+        corners_gt = view_points(gt_bbox_3d.corners(), view = np.array(cs_record_calib['camera_intrinsic']), normalize = True)[:2, :]
+
+        # Draw the sides of the bounding box
+        colors_gt = ('m', 'm', 'm')
+
+        for i in range(4):
+            axes.plot([corners_gt.T[i][0], corners_gt.T[i + 4][0]],
+                    [corners_gt.T[i][1], corners_gt.T[i + 4][1]],
+                    color=colors_gt[2], linewidth = 2)
+
+        # Draw front (first 4 corners) and rear (last 4 corners) rectangles(3d)/lines(2d)
+        draw_rect(corners_gt.T[:4], colors_gt[0], axes)
+        draw_rect(corners_gt.T[4:], colors_gt[1], axes)
+
+        # Draw line indicating the front
+        center_bottom_forward = np.mean(corners_gt.T[2:4], axis=0)
+        center_bottom = np.mean(corners_gt.T[[2, 3, 7, 6]], axis=0)
+        axes.plot([center_bottom[0], center_bottom_forward[0]],
+                [center_bottom[1], center_bottom_forward[1]],
+                color=colors_gt[0], linewidth=2)
+
     axes.set_title(nusc.get('sample_data', cam['token'])['channel'])
     axes.axis('off')
     axes.set_aspect('equal')
