@@ -206,9 +206,9 @@ def target_to_cam(nusc: NuScenes,
     Given an annotation token (3d detection in world coordinate frame) and pointsensor sample_data token,
     transform the label from world-coordinate frame to LiDAR.
     :param nusc: NuScenes instance.
-    :param camera_token: Lidar/radar sample_data token.
+    :param pointsensor_token: Lidar/radar sample_data token.
     :param annotation_token: Camera sample_annotation token.
-    :param camera_channel: Laser channel name, e.g. 'LIDAR_TOP'.
+    :param pointsensor_channel: Laser channel name, e.g. 'LIDAR_TOP'.
     :return box with the labels for the 3d detection task in the LiDAR channel frame.
     """
     
@@ -425,3 +425,34 @@ def parse_features_to_numpy(path: str):
     
     return descriptor_array
 
+def pred_to_world(nusc: NuScenes,
+                  pointsensor_token: str,
+                  bbox_3d,
+                  pointsensor_channel: str = 'LIDAR_TOP'):
+    """
+    Given an annotation token (3d detection in world coordinate frame) and pointsensor sample_data token,
+    transform the label from world-coordinate frame to LiDAR.
+    :param nusc: NuScenes instance.
+    :param pointsensor_token: Lidar/radar sample_data token.
+    :param bbox_3d: box object with the predicted 3D bbox info.
+    :param pointsensor_channel: Laser channel name, e.g. 'LIDAR_TOP'.
+    :return box mapped in the world coordinate frame.
+    """
+    
+    # Point LiDAR sample        
+    point_data = nusc.get('sample_data', pointsensor_token) # Sample LiDAR info
+        
+    # From LiDAR to ego
+    cs_rec = nusc.get('calibrated_sensor', point_data['calibrated_sensor_token'])
+    # Transformation metadata from ego to world coordinate frame
+    pose_rec = nusc.get('ego_pose', point_data['ego_pose_token'])
+
+    # Map tp ego-vehicle coordinate frame
+    bbox_3d.rotate(Quaternion(cs_rec['rotation']))
+    bbox_3d.translate(np.array(cs_rec['translation']))
+
+    # Map from ego-vehicle to world coordinate frame
+    bbox_3d.rotate(Quaternion(pose_rec['rotation']))
+    bbox_3d.translate(np.array(pose_rec['translation']))
+    
+    return bbox_3d
