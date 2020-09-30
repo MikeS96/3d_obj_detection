@@ -88,7 +88,7 @@ def save_in_file(dataroot: str ,
     :param data_json: dictionary with the info.
     """
     with open(dataroot, 'w') as outfile:
-        json.dump(data_json, outfile)
+        json.dump(data_json, outfile, indent= 4)
     
 
 def bbox_3d_to_2d(nusc: NuScenes,
