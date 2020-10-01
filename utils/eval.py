@@ -4,6 +4,7 @@
 import numpy as np
 from shapely.geometry import Polygon
 import shapely.ops as so
+import matplotlib.pyplot as plt
 
 def volume_box3d(corners: np.array):
     ''' 
@@ -66,8 +67,8 @@ def box3d_iou(corners1: np.array,
     inter_vol = inter_area * max(0.0, zmax - zmin)
 
     # Computing the volume of the 3D bounding boxes
-    vol1 = box3d_vol_(corners1)
-    vol2 = box3d_vol_(corners2)
+    vol1 = volume_box3d(corners1)
+    vol2 = volume_box3d(corners2)
 
     # 3D IoU volume computation
     iou = inter_vol / (vol1 + vol2 - inter_vol)
