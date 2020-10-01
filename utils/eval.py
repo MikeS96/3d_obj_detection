@@ -5,7 +5,7 @@ import numpy as np
 from shapely.geometry import Polygon
 import shapely.ops as so
 
-def volume_box3d(corners):
+def volume_box3d(corners: np.array):
     ''' 
     Compute the volume of a 3D bounding box given their 8 points.
     :param corners: <np.float: 8, 3> point cloud mapped in the image frame.
@@ -16,11 +16,14 @@ def volume_box3d(corners):
     c = np.sqrt(np.sum((corners[0,:] - corners[4,:])**2)) # Width
     return a*b*c
 
-def box3d_iou(corners1, corners2, vis_result = False):
+def box3d_iou(corners1: np.array, 
+              corners2: np.array, 
+              vis_result: bool = False):
     ''' 
     Compute 3D bounding box IoU.
     :param corners1: <np.float: 8, 3> Bounding predicted box coordinates.
-    :param corners2: <np.float: 8, 3> Bounding ground truth box coordinates
+    :param corners2: <np.float: 8, 3> Bounding ground truth box coordinates.
+    :param vis_result: Visualize union of bounding boxes in XY plane.
     :return iou: 3D IoU between ground truth and prediction.
     :return iou_2d: BEV IoU in XY plane.
     '''
