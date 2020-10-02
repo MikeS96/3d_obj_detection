@@ -12,6 +12,7 @@
  */
 
 #include <iostream>
+#include <chrono>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/features/normal_3d.h>
@@ -64,11 +65,15 @@ int main (int argc, char** argv)
   std::string path = "../dataset/pcd_segmentation/";
   std::string token;
   std::vector<std::string> splitter;
+
+  double time_val = 0;
   int cont = 0;
   for (const auto & entry : fs::directory_iterator(path))
   {
     //std::cout << entry.path() << std::endl;
     // Save token as a string
+    // Start counter
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     token = entry.path();
 
     // Read a PCD file from disk.
@@ -128,9 +133,13 @@ int main (int argc, char** argv)
     outfile << hist; 
     outfile.close();
     cont ++;
+    // End time
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    time_val = double(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()) / 1000000;
   }
 
   std::cout << "The total number of instances proccessed were: " << cont << std::endl;
+  std::cout << "The avg proccessing time is: " << time_val / cont << std::endl;
 
   // This method also saves the vector as pcd, however, open3d is not able to openit
   // pcl::io::savePCDFileASCII ("../segmentation/car_vfh.pcd", *descriptor);
