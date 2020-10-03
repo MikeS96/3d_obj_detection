@@ -55,6 +55,7 @@ Aditionally, you will also need to organize the workspace as shown below and cre
     │   ├── __init__.py
     │   ├── misc.py
     │   └── vis.py
+    │   └── eval.py
     └──  README.md
 
 ## Usage
