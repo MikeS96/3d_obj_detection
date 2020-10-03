@@ -4,7 +4,7 @@
 This repository aims to be an end-to-end pipeline for 3D object detection using classic Machine Learning (ML) technique. The idea is to prove that classic ML is capable to tackle complex tasks such as 3D object detection for self-driving vehicles' applications.
 
 <div  align="center">
-<img src="./assets/3d_car.jpeg" width="480" />
+<img src="./assets/instance.gif" width="480" />
 </div>
 
 ## Description
