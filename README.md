@@ -100,5 +100,5 @@ This will create the global descriptor for each segmented vehicle.
 Finally, `3D Bounding box regressor.ipynb`condense all this information in a CSV file with all the features and targets. There a supervised learning strategy is used to estimate the 3D bounding box parameters. Some of the results obtained are shown below.
 
 <div  align="center">
-<img src="./assets/car_1.jpeg" width="360" /> <img src="./assets/car_2.jpeg" width="360" />  
+<img src="./assets/car_1.jpeg" width="380" /> <img src="./assets/car_2.jpeg" width="380" />  
 </div>
