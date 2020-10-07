@@ -1,8 +1,8 @@
-nuscenes_devkit==1.0.9
-open3d==0.10.0.0
-opencv_python==3.4.11.39
-pyquaternion==0.9.5
 Shapely==1.7.0
+open3d==0.10.0.0
+pyquaternion==0.9.5
 numpy==1.19.1
+opencv_python==3.4.11.39
+nuscenes_devkit==1.1.0
 matplotlib==3.3.0
 Pillow==7.2.0
