@@ -102,3 +102,18 @@ Finally, `3D Bounding box regressor.ipynb`condense all this information in a CSV
 <div  align="center">
 <img src="./assets/car_1.jpeg" height="180" /> <img src="./assets/car_2.jpeg" height="180" />  
 </div>
+
+### Citation
+
+If you use this code, please cite our paper:
+
+```
+@misc{salazargomez2021highlevel,
+      title={High-level camera-LiDAR fusion for 3D object detection with machine learning}, 
+      author={Gustavo A. Salazar-Gomez and Miguel A. Saavedra-Ruiz and Victor A. Romero-Cano},
+      year={2021},
+      eprint={2105.11060},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
