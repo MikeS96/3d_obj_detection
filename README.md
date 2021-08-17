@@ -105,7 +105,7 @@ Finally, `3D Bounding box regressor.ipynb`condense all this information in a CSV
 
 ### Citation
 
-If you use this code, please cite our paper:
+If you use this code, please cite our [paper](https://arxiv.org/abs/2105.11060):
 
 ```
 @misc{salazargomez2021highlevel,
